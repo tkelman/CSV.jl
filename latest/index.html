@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Utility library for working with CSV and other delimited files in the Julia programming language">
+  <meta name="author" content="Jacob Quinn">
+  
+  <title>CSV.jl</title>
+  
+
+  <link rel="shortcut icon" href="./img/favicon.ico">
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="./css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="./css/highlight.css">
+  <link href="./assets/Documenter.css" rel="stylesheet">
+
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "None";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = "/";
+  </script>
+  
+  <script src="./js/jquery-2.1.1.min.js"></script>
+  <script src="./js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="./js/highlight.pack.js"></script>
+  <script src="./js/theme.js"></script> 
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script src="./assets/mathjaxhelper.js"></script>
+
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="." class="icon icon-home"> CSV.jl</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <ul class="current">
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href=".">Home</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#csvjl-documentation">CSV.jl Documentation</a></li>
+                
+                    <li><a class="toctree-l4" href="#high-level-interface">High-level interface</a></li>
+                
+                    <li><a class="toctree-l4" href="#lower-level-utilities">Lower-level utilities</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href=".">CSV.jl</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Home</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        
+          <a href="https://github.com/JuliaData/CSV.jl" class="icon icon-github"> Edit on GitHub</a>
+        
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <p><a id='CSV.jl-Documentation-1'></a></p>
+<h1 id="csvjl-documentation">CSV.jl Documentation</h1>
+<p><a id='High-level-interface-1'></a></p>
+<h2 id="high-level-interface">High-level interface</h2>
+<p><a id='CSV.read' href='#CSV.read'>#</a>
+<strong><code>CSV.read</code></strong> &mdash; <em>Function</em>.</p>
+<p>parses a delimited file into a Julia structure (a DataFrame by default, but any <code>Data.Sink</code> may be given).</p>
+<ul>
+<li><code>fullpath</code>; can be a file name (string) or other <code>IO</code> instance</li>
+<li><code>sink</code>; a <code>DataFrame</code> by default, but may also be other <code>Data.Sink</code> types that support the <code>AbstractTable</code> interface</li>
+<li><code>delim::Union{Char,UInt8}</code>; how fields in the file are delimited</li>
+<li><code>quotechar::Union{Char,UInt8}</code>; the character that indicates a quoted field that may contain the <code>delim</code> or newlines</li>
+<li><code>escapechar::Union{Char,UInt8}</code>; the character that escapes a <code>quotechar</code> in a quoted field</li>
+<li><code>null::String</code>; an ascii string that indicates how NULL values are represented in the dataset</li>
+<li><code>header</code>; column names can be provided manually as a complete Vector{String}, or as an Int/Range which indicates the row/rows that contain the column names</li>
+<li><code>datarow::Int</code>; specifies the row on which the actual data starts in the file; by default, the data is expected on the next row after the header row(s)</li>
+<li><code>types</code>; column types can be provided manually as a complete Vector{DataType}, or in a Dict to reference a column by name or number</li>
+<li><code>dateformat::Union{AbstractString,Dates.DateFormat}</code>; how all dates/datetimes are represented in the dataset</li>
+<li><code>footerskip::Int</code>; indicates the number of rows to skip at the end of the file</li>
+<li><code>rows_for_type_detect::Int=100</code>; indicates how many rows should be read to infer the types of columns</li>
+<li><code>rows::Int</code>; indicates the total number of rows to read from the file; by default the file is pre-parsed to count the # of rows</li>
+<li><code>use_mmap::Bool=true</code>; whether the underlying file will be mmapped or not while parsing</li>
+</ul>
+<p>Note by default, "string" or text columns will be parsed as the <code>WeakRefString</code> type. This is a custom type that only stores a pointer to the actual byte data + the number of bytes. To convert a <code>String</code> to a standard Julia string type, just call <code>string(::String)</code>, this also works on an entire column <code>string(::NullableVector{String})</code>. Oftentimes, however, it can be convenient to work with <code>WeakRefStrings</code> depending on the ultimate use, such as transfering the data directly to another system and avoiding all the intermediate byte copying.</p>
+<p>Example usage:</p>
+<pre><code>julia&gt; dt = CSV.read(&quot;bids.csv&quot;)
+7656334×9 DataFrames.DataFrame
+│ Row     │ bid_id  │ bidder_id                               │ auction │ merchandise      │ device      │
+├─────────┼─────────┼─────────────────────────────────────────┼─────────┼──────────────────┼─────────────┤
+│ 1       │ 0       │ &quot;8dac2b259fd1c6d1120e519fb1ac14fbqvax8&quot; │ &quot;ewmzr&quot; │ &quot;jewelry&quot;        │ &quot;phone0&quot;    │
+│ 2       │ 1       │ &quot;668d393e858e8126275433046bbd35c6tywop&quot; │ &quot;aeqok&quot; │ &quot;furniture&quot;      │ &quot;phone1&quot;    │
+│ 3       │ 2       │ &quot;aa5f360084278b35d746fa6af3a7a1a5ra3xe&quot; │ &quot;wa00e&quot; │ &quot;home goods&quot;     │ &quot;phone2&quot;    │
+...
+</code></pre>
+
+<p><a target='_blank' href='https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Source.jl#L218-251' class='documenter-source'>source</a><br></p>
+<p><strong>Methods</strong></p>
+<ul class="documenter-methodtable">
+<li>
+    <pre class="documenter-inline"><span class="nf">read</span><span class="p">(</span><span class="n">fullpath</span><span class="p">::</span><span class="n">Union{AbstractString,IO}</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Source.jl#L266">src/Source.jl:266</a>
+</li>
+<li>
+    <pre><span class="nf">read</span><span class="p">(</span>
+    <span class="n">fullpath</span><span class="p">::</span><span class="n">Union{AbstractString,IO}</span><span class="p">,
+</span>    <span class="n">sink</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Source.jl#L266">src/Source.jl:266</a>
+</li>
+</ul>
+
+<p><a id='CSV.write' href='#CSV.write'>#</a>
+<strong><code>CSV.write</code></strong> &mdash; <em>Function</em>.</p>
+<p>write a <code>source::Data.Source</code> out to a <code>CSV.Sink</code></p>
+<ul>
+<li><code>io::Union{String,IO}</code>; a filename (String) or <code>IO</code> type to write the <code>source</code> to</li>
+<li><code>source</code>; a <code>Data.Source</code> type</li>
+<li><code>delim::Union{Char,UInt8}</code>; how fields in the file will be delimited</li>
+<li><code>quotechar::Union{Char,UInt8}</code>; the character that indicates a quoted field that may contain the <code>delim</code> or newlines</li>
+<li><code>escapechar::Union{Char,UInt8}</code>; the character that escapes a <code>quotechar</code> in a quoted field</li>
+<li><code>null::String</code>; the ascii string that indicates how NULL values will be represented in the dataset</li>
+<li><code>dateformat</code>; how dates/datetimes will be represented in the dataset</li>
+<li><code>quotefields::Bool</code>; whether all fields should be quoted or not</li>
+<li><code>header::Bool</code>; whether to write out the column names from <code>source</code></li>
+<li><code>append::Bool</code>; start writing data at the end of <code>io</code>; by default, <code>io</code> will be reset to its beginning before writing</li>
+</ul>
+<p><a target='_blank' href='https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Sink.jl#L98-111' class='documenter-source'>source</a><br></p>
+<p><strong>Methods</strong></p>
+<ul class="documenter-methodtable">
+<li>
+    <pre><span class="nf">write</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">Union{AbstractString,IO}</span><span class="p">,
+</span>    <span class="n">source</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Sink.jl#L122">src/Sink.jl:122</a>
+</li>
+</ul>
+
+<p><a id='CSV.Options' href='#CSV.Options'>#</a>
+<strong><code>CSV.Options</code></strong> &mdash; <em>Type</em>.</p>
+<p>Represents the various configuration settings for csv file parsing.</p>
+<ul>
+<li><code>delim</code>::Union{Char,UInt8} = how fields in the file are delimited</li>
+<li><code>quotechar</code>::Union{Char,UInt8} = the character that indicates a quoted field that may contain the <code>delim</code> or newlines</li>
+<li><code>escapechar</code>::Union{Char,UInt8} = the character that escapes a <code>quotechar</code> in a quoted field</li>
+<li><code>null</code>::String = indicates how NULL values are represented in the dataset</li>
+<li><code>dateformat</code>::Union{AbstractString,Dates.DateFormat} = how dates/datetimes are represented in the dataset</li>
+</ul>
+<p><a target='_blank' href='https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/CSV.jl#L51-59' class='documenter-source'>source</a><br></p>
+<p><strong>Methods</strong></p>
+<ul class="documenter-methodtable">
+<li>
+    <pre class="documenter-inline"><span class="nf">Options</span><span class="p">(</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/CSV.jl#L72">src/CSV.jl:72</a>
+</li>
+<li>
+    <pre><span class="nf">Options</span><span class="p">(</span>
+    <span class="n">delim</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">quotechar</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">escapechar</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">separator</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">decimal</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">null</span><span class="p">::</span><span class="n">String</span><span class="p">,
+</span>    <span class="n">nullcheck</span><span class="p">::</span><span class="n">Bool</span><span class="p">,
+</span>    <span class="n">dateformat</span><span class="p">::</span><span class="n">Base.Dates.DateFormat</span><span class="p">,
+</span>    <span class="n">datecheck</span><span class="p">::</span><span class="n">Bool</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/CSV.jl#L61">src/CSV.jl:61</a>
+</li>
+<li>
+    <pre><span class="nf">Options</span><span class="p">(</span>
+    <span class="n">delim</span><span class="p">,
+</span>    <span class="n">quotechar</span><span class="p">,
+</span>    <span class="n">escapechar</span><span class="p">,
+</span>    <span class="n">separator</span><span class="p">,
+</span>    <span class="n">decimal</span><span class="p">,
+</span>    <span class="n">null</span><span class="p">,
+</span>    <span class="n">nullcheck</span><span class="p">,
+</span>    <span class="n">dateformat</span><span class="p">,
+</span>    <span class="n">datecheck</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/CSV.jl#L61">src/CSV.jl:61</a>
+</li>
+</ul>
+
+<p><em>Hiding 1 method defined outside of this package.</em></p>
+<p><a id='Lower-level-utilities-1'></a></p>
+<h2 id="lower-level-utilities">Lower-level utilities</h2>
+<p><a id='CSV.Source' href='#CSV.Source'>#</a>
+<strong><code>CSV.Source</code></strong> &mdash; <em>Type</em>.</p>
+<p>constructs a <code>CSV.Source</code> file ready to start parsing data from</p>
+<p>implements the <code>Data.Source</code> interface for providing convenient <code>Data.stream!</code> methods for various <code>Data.Sink</code> types</p>
+<p><a target='_blank' href='https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/CSV.jl#L84-88' class='documenter-source'>source</a><br></p>
+<p><strong>Methods</strong></p>
+<ul class="documenter-methodtable">
+<li>
+    <pre class="documenter-inline"><span class="nf">Source</span><span class="p">(</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Source.jl#L59">src/Source.jl:59</a>
+</li>
+<li>
+    <pre><span class="nf">Source</span><span class="p">{</span><span class="n">I<:IO</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">schema</span><span class="p">::</span><span class="n">DataStreams.Data.Schema</span><span class="p">,
+</span>    <span class="n">options</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">data</span><span class="p">::</span><span class="n">I</span><span class="p">,
+</span>    <span class="n">datapos</span><span class="p">::</span><span class="n">Int64</span><span class="p">,
+</span>    <span class="n">fullpath</span><span class="p">::</span><span class="n">String</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/CSV.jl#L90">src/CSV.jl:90</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">Source</span><span class="p">(</span><span class="n">fullpath</span><span class="p">::</span><span class="n">Union{AbstractString,IO}</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Source.jl#L28">src/Source.jl:28</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">Source</span><span class="p">{</span><span class="n">I</span><span class="p">}</span><span class="p">(</span><span class="n">s</span><span class="p">::</span><span class="n">CSV.Sink{I}</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Source.jl#L176">src/Source.jl:176</a>
+</li>
+</ul>
+
+<p><em>Hiding 1 method defined outside of this package.</em></p>
+<p><a id='CSV.Sink' href='#CSV.Sink'>#</a>
+<strong><code>CSV.Sink</code></strong> &mdash; <em>Type</em>.</p>
+<p>constructs a <code>CSV.Sink</code> file ready to start writing data to</p>
+<p>implements the <code>Data.Sink</code> interface for providing convenient <code>Data.stream!</code> methods for various <code>Data.Source</code> types</p>
+<p><a target='_blank' href='https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/CSV.jl#L103-107' class='documenter-source'>source</a><br></p>
+<p><strong>Methods</strong></p>
+<ul class="documenter-methodtable">
+<li>
+    <pre><span class="nf">Sink</span><span class="p">{</span><span class="n">I<:IO</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">schema</span><span class="p">::</span><span class="n">DataStreams.Data.Schema</span><span class="p">,
+</span>    <span class="n">options</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">data</span><span class="p">::</span><span class="n">I</span><span class="p">,
+</span>    <span class="n">datapos</span><span class="p">::</span><span class="n">Int64</span><span class="p">,
+</span>    <span class="n">quotefields</span><span class="p">::</span><span class="n">Bool</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/CSV.jl#L109">src/CSV.jl:109</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">Sink</span><span class="p">(</span><span class="n">s</span><span class="p">::</span><span class="n">CSV.Source</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Sink.jl#L8">src/Sink.jl:8</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">Sink</span><span class="p">(</span><span class="n">s</span><span class="p">::</span><span class="n">CSV.Source</span><span class="p">, </span><span class="n">io</span><span class="p">::</span><span class="n">IOStream</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Sink.jl#L17">src/Sink.jl:17</a>
+</li>
+<li>
+    <pre><span class="nf">Sink</span><span class="p">(</span>
+    <span class="n">s</span><span class="p">::</span><span class="n">CSV.Source</span><span class="p">,
+</span>    <span class="n">file</span><span class="p">::</span><span class="n">AbstractString</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Sink.jl#L21">src/Sink.jl:21</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">Sink</span><span class="p">(</span><span class="n">io</span><span class="p">::</span><span class="n">Union{AbstractString,IO}</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/Sink.jl#L34">src/Sink.jl:34</a>
+</li>
+</ul>
+
+<p><em>Hiding 1 method defined outside of this package.</em></p>
+<p><a id='CSV.parsefield' href='#CSV.parsefield'>#</a>
+<strong><code>CSV.parsefield</code></strong> &mdash; <em>Function</em>.</p>
+<p><code>io</code> is an <code>IO</code> type that is positioned at the first byte/character of an delimited-file field (i.e. a single cell) leading whitespace is ignored for Integer and Float types. returns a <code>Tuple{T,Bool}</code> with a value &amp; bool saying whether the field contains a null value or not Specialized methods exist for Integer, Float, String, Date, and DateTime. For other types <code>T</code>, a generic fallback requires <code>zero(T)</code> and <code>parse(T, str::String)</code> to be defined. field is null if the next delimiter or newline is encountered before any other characters. the field value may also be wrapped in <code>opt.quotechar</code>; two consecutive <code>opt.quotechar</code> results in a null field <code>opt.null</code> is also checked if there is a custom value provided (i.e. "NA", "\N", etc.) For numeric fields, if field is non-null and non-digit characters are encountered at any point before a delimiter or newline, an error is thrown</p>
+<p><a target='_blank' href='https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L55-65' class='documenter-source'>source</a><br></p>
+<p><strong>Methods</strong></p>
+<ul class="documenter-methodtable">
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractFloat</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">Base.AbstractIOBuffer{Array{UInt8,1}}</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L99">src/parsefields.jl:99</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractFloat</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">Base.AbstractIOBuffer{Array{UInt8,1}}</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L99">src/parsefields.jl:99</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractFloat</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">Base.AbstractIOBuffer{Array{UInt8,1}}</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L99">src/parsefields.jl:99</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractFloat</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">Base.AbstractIOBuffer{Array{UInt8,1}}</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span><span class="p">,
+</span>    <span class="n">col</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L99">src/parsefields.jl:99</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractString</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">Base.AbstractIOBuffer{Array{UInt8,1}}</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L149">src/parsefields.jl:149</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractString</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">Base.AbstractIOBuffer{Array{UInt8,1}}</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L149">src/parsefields.jl:149</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractString</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">Base.AbstractIOBuffer{Array{UInt8,1}}</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L149">src/parsefields.jl:149</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractString</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">Base.AbstractIOBuffer{Array{UInt8,1}}</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span><span class="p">,
+</span>    <span class="n">col</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L149">src/parsefields.jl:149</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:Integer</span><span class="p">}</span><span class="p">(</span><span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">, </span><span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L69">src/parsefields.jl:69</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:Integer</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L69">src/parsefields.jl:69</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:Integer</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L69">src/parsefields.jl:69</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:Integer</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span><span class="p">,
+</span>    <span class="n">col</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L69">src/parsefields.jl:69</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractFloat</span><span class="p">}</span><span class="p">(</span><span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">, </span><span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L131">src/parsefields.jl:131</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractFloat</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L131">src/parsefields.jl:131</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractFloat</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L131">src/parsefields.jl:131</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractFloat</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span><span class="p">,
+</span>    <span class="n">col</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L131">src/parsefields.jl:131</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractString</span><span class="p">}</span><span class="p">(</span><span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">, </span><span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L183">src/parsefields.jl:183</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractString</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L183">src/parsefields.jl:183</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractString</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L183">src/parsefields.jl:183</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T<:AbstractString</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span><span class="p">,
+</span>    <span class="n">col</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L183">src/parsefields.jl:183</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">parsefield</span><span class="p">(</span><span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">, </span><span class="n"></span><span class="p">::</span><span class="n">Type{Date}</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L221">src/parsefields.jl:221</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{Date}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L221">src/parsefields.jl:221</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{Date}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L221">src/parsefields.jl:221</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{Date}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span><span class="p">,
+</span>    <span class="n">col</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L221">src/parsefields.jl:221</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">parsefield</span><span class="p">(</span><span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">, </span><span class="n"></span><span class="p">::</span><span class="n">Type{DateTime}</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L269">src/parsefields.jl:269</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{DateTime}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L269">src/parsefields.jl:269</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{DateTime}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L269">src/parsefields.jl:269</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{DateTime}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span><span class="p">,
+</span>    <span class="n">col</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L269">src/parsefields.jl:269</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">parsefield</span><span class="p">{</span><span class="n">T</span><span class="p">}</span><span class="p">(</span><span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">, </span><span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L338">src/parsefields.jl:338</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L338">src/parsefields.jl:338</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L338">src/parsefields.jl:338</a>
+</li>
+<li>
+    <pre><span class="nf">parsefield</span><span class="p">{</span><span class="n">T</span><span class="p">}</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n"></span><span class="p">::</span><span class="n">Type{T}</span><span class="p">,
+</span>    <span class="n">opt</span><span class="p">::</span><span class="n">CSV.Options</span><span class="p">,
+</span>    <span class="n">row</span><span class="p">,
+</span>    <span class="n">col</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/parsefields.jl#L338">src/parsefields.jl:338</a>
+</li>
+</ul>
+
+<p><a id='CSV.readline-Tuple{CSV.Source}' href='#CSV.readline-Tuple{CSV.Source}'>#</a>
+<strong><code>CSV.readline</code></strong> &mdash; <em>Method</em>.</p>
+<p>read a single line from <code>io</code> (any <code>IO</code> type) as a string, accounting for potentially embedded newlines in quoted fields (e.g. value1, value2, "value3 with   embedded newlines"). Can optionally provide a <code>buf::IOBuffer</code> type for buffer resuse</p>
+<p><a target='_blank' href='https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/io.jl#L1-3' class='documenter-source'>source</a><br></p>
+<p><a id='CSV.readsplitline' href='#CSV.readsplitline'>#</a>
+<strong><code>CSV.readsplitline</code></strong> &mdash; <em>Function</em>.</p>
+<p>read a single line from <code>io</code> (any <code>IO</code> type) as a <code>Vector{String}</code> with elements being delimited fields. Can optionally provide a <code>buf::IOBuffer</code> type for buffer resuse</p>
+<p><a target='_blank' href='https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/io.jl#L29' class='documenter-source'>source</a><br></p>
+<p><strong>Methods</strong></p>
+<ul class="documenter-methodtable">
+<li>
+    <pre class="documenter-inline"><span class="nf">readsplitline</span><span class="p">(</span><span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/io.jl#L31">src/io.jl:31</a>
+</li>
+<li>
+    <pre class="documenter-inline"><span class="nf">readsplitline</span><span class="p">(</span><span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">, </span><span class="n">d</span><span class="p">::</span><span class="n">UInt8</span><span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/io.jl#L31">src/io.jl:31</a>
+</li>
+<li>
+    <pre><span class="nf">readsplitline</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n">d</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">q</span><span class="p">::</span><span class="n">UInt8</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/io.jl#L31">src/io.jl:31</a>
+</li>
+<li>
+    <pre><span class="nf">readsplitline</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n">d</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">q</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">e</span><span class="p">::</span><span class="n">UInt8</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/io.jl#L31">src/io.jl:31</a>
+</li>
+<li>
+    <pre><span class="nf">readsplitline</span><span class="p">(</span>
+    <span class="n">io</span><span class="p">::</span><span class="n">IO</span><span class="p">,
+</span>    <span class="n">d</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">q</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">e</span><span class="p">::</span><span class="n">UInt8</span><span class="p">,
+</span>    <span class="n">buf</span><span class="p">::</span><span class="n">Base.AbstractIOBuffer{Array{UInt8,1}}</span>
+<span class="p">)</span></pre>
+    defined at
+    <a target="_blank" href="https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/io.jl#L31">src/io.jl:31</a>
+</li>
+</ul>
+
+<p><a id='CSV.countlines-Tuple{CSV.Source}' href='#CSV.countlines-Tuple{CSV.Source}'>#</a>
+<strong><code>CSV.countlines</code></strong> &mdash; <em>Method</em>.</p>
+<p>count the number of lines in a file, accounting for potentially embedded newlines in quoted fields</p>
+<p><a target='_blank' href='https://github.com/JuliaData/CSV.jl/tree/d561a96d097552e999919a64051d97121232709e/src/io.jl#L60' class='documenter-source'>source</a><br></p>
+              
+            </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+<div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/JuliaData/CSV.jl" class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+      
+    </span>
+</div>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 0.15.3
+Build Date UTC : 2016-07-02 23:16:23.072578
+-->
